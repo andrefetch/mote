@@ -42,6 +42,7 @@ int main(void) {
 
   initscr(); // inits screen
   raw();
+  set_escdelay(0);
   keypad(stdscr, TRUE);
   noecho();
 
@@ -53,22 +54,25 @@ int main(void) {
   mvprintw(row-1, 0, stringify_mode());
   move(0, 0);
 
-  int ch;
+  int ch = 0;
 
   int x, y = 0;
-  while (ch != 'r') {
+  while (ch != 'q') {
     mvprintw(row-1, 0, stringify_mode());
     move(y, x);
-    ch = getch();
 
     switch(mode) {
       case NORMAL:
+        ch = getch();
         if(ch == 'i'){
           mode = INSERT;
         }
         break;
-      case INSERT:
-        if (ch == BACKSPACE) {
+      case INSERT: {
+        ch = getch();
+        if (ch == ERR) {
+          break;
+        } else if (ch == BACKSPACE) {
           getyx(stdscr, y, x);
           move(y, x-1);
           delch();
@@ -76,11 +80,11 @@ int main(void) {
           mode = NORMAL;
         } else {
           addch(ch);
-          refresh();
         }
-        getyx(stdscr, y, x);
         break;
     }
+    }
+    getyx(stdscr, y, x);
   }
 
   refresh(); 

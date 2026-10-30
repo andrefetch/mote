@@ -42,7 +42,6 @@ int main(void) {
   noecho();
 
   // Disable XON/XOFF flow control so Ctrl+Q/Ctrl+S reach the program
-  // Must be done AFTER raw() which re-enables it
   if (tcgetattr(STDIN_FILENO, &t) == 0) {
     t.c_iflag &= ~(IXON | IXOFF | IXANY);
     tcsetattr(STDIN_FILENO, TCSANOW, &t);
@@ -51,7 +50,7 @@ int main(void) {
   char *buf = malloc(sizeof(char) * 1024);
   size_t buf_s = 0;
 
-  // attron(A_BLINK | A_UNDERLINE);
+  // attron(A_BLINK | A_UNDERLINE); (i was messing with effects)
 
   int row, col;
   getmaxyx(stdscr, row, col);
@@ -68,19 +67,27 @@ int main(void) {
     move(y, x);
 
     switch(mode) {
-      case NORMAL:
+      case NORMAL: {
         ch = getch();
-        if(ch == 'i'){
+        if(ch == 'i') {
           mode = INSERT;
+        } else if (ch == 'h') {
+          move(y, x-1);
+        } else if (ch == 'l') {
+          move(y, x+1);
+        } else if (ch == 'j') {
+          move(y-1, x);
+        } else if (ch == 'k') {
+          move(y+1, x);
         } else if(ch == ctrl('s')) {
-
           FILE *file = fopen("out.txt", "w");
-          
+
           fwrite(buf, buf_s, 1, file);
           fclose(file);
           QUIT = 1;
         }
         break;
+      }
       case INSERT: {
         ch = getch();
         if (ch == ERR) {

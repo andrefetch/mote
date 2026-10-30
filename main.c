@@ -13,6 +13,18 @@ typedef enum {
   INSERT,
 } Mode;
 
+typedef struct {
+  size_t index;
+  size_t size;
+  char *contents;
+} Row;
+
+typedef struct {
+  char *buf;
+  Row rows[1024];
+  size_t row_index;
+} Buffer;
+
 Mode mode = NORMAL;
 int QUIT = 0;
 
@@ -47,12 +59,12 @@ int main(void) {
     tcsetattr(STDIN_FILENO, TCSANOW, &t);
   }
 
-  char *buf = malloc(sizeof(char) * 1024);
-  size_t buf_s = 0;
-
+  Buffer buffer = {0};
+  buffer.buf = calloc(1024, sizeof(char)); // magic numbers mothafluffa
+                                          
   // attron(A_BLINK | A_UNDERLINE); (i was messing with effects)
 
-  int row, col;
+  int row, col = 0;
   getmaxyx(stdscr, row, col);
   
   mvprintw(row-1, 0, stringify_mode());
@@ -73,16 +85,20 @@ int main(void) {
           mode = INSERT;
         } else if (ch == 'h') {
           move(y, x-1);
+          buffer.x -= 1;
         } else if (ch == 'l') {
           move(y, x+1);
+          buffer.x += 1;
         } else if (ch == 'j') {
           move(y-1, x);
+          buffer.y -= 1;
         } else if (ch == 'k') {
           move(y+1, x);
+          buffer.y += 1;
         } else if(ch == ctrl('s')) {
           FILE *file = fopen("out.txt", "w");
 
-          fwrite(buf, buf_s, 1, file);
+          fwrite(buffer.buf, buffer.x*buffer.y, 1, file);
           fclose(file);
           QUIT = 1;
         }
@@ -96,12 +112,14 @@ int main(void) {
           getyx(stdscr, y, x);
           move(y, x-1);
           delch();
-          buf[buf_s--] = ' ';
+          buffer.buf[buffer.x * x+buffer.y] = ' ';
+          buffer.x -= 1;
         } else if (ch == ESCAPE) {
           mode = NORMAL;
         } else {
-          buf[buf_s++] = ch;
+          buffer.buf[buffer.x * x+buffer.y] = ch;
           addch(ch);
+          buffer.x += 1;
         }
         break;
     }

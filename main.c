@@ -6,6 +6,7 @@
 
 #define ctrl(x) ((x) & 0x1f)
 #define BACKSPACE 263
+#define ESCAPE 27
 
 typedef enum {
   NORMAL,
@@ -52,30 +53,35 @@ int main(void) {
   mvprintw(row-1, 0, stringify_mode());
   move(0, 0);
 
-  int ch = getch();
-  addch(ch);
+  int ch;
 
   int x, y = 0;
-  getyx(stdscr, y, x);
   while (ch != 'r') {
     mvprintw(row-1, 0, stringify_mode());
     move(y, x);
     ch = getch();
 
     switch(mode) {
-      case NORMAL: 
+      case NORMAL:
+        if(ch == 'i'){
+          mode = INSERT;
+        }
         break;
       case INSERT:
-         if (ch == BACKSPACE) {
+        if (ch == BACKSPACE) {
           getyx(stdscr, y, x);
           move(y, x-1);
           delch();
+        } else if (ch == ESCAPE) {
+          mode = NORMAL;
         } else {
           addch(ch);
+          refresh();
         }
-      }
-      getyx(stdscr, y, x);
+        getyx(stdscr, y, x);
+        break;
     }
+  }
 
   refresh(); 
   getch();

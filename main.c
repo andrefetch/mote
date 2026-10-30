@@ -11,7 +11,7 @@ int main(void) {
 
   while (ch != 'q') {
     ch = getch();
-    printw("%d\n", ch);
+    printw("%c", ch);
   }
 
   refresh(); 

@@ -14,6 +14,7 @@ typedef enum {
 } Mode;
 
 Mode mode = NORMAL;
+int QUIT = 0;
 
 char *stringify_mode() {
   switch(mode) {
@@ -32,19 +33,23 @@ char *stringify_mode() {
 
 int main(void) {
 
-  // Disable XON/XOFF flow control so Ctrl+Q reaches the program
   struct termios t;
-
-  if (tcgetattr(STDIN_FILENO, &t) == 0) {
-    t.c_iflag &= ~(IXON | IXOFF | IXANY);
-    tcsetattr(STDIN_FILENO, TCSANOW, &t);
-  }
 
   initscr(); // inits screen
   raw();
   set_escdelay(0);
   keypad(stdscr, TRUE);
   noecho();
+
+  // Disable XON/XOFF flow control so Ctrl+Q/Ctrl+S reach the program
+  // Must be done AFTER raw() which re-enables it
+  if (tcgetattr(STDIN_FILENO, &t) == 0) {
+    t.c_iflag &= ~(IXON | IXOFF | IXANY);
+    tcsetattr(STDIN_FILENO, TCSANOW, &t);
+  }
+
+  char *buf = malloc(sizeof(char) * 1024);
+  size_t buf_s = 0;
 
   // attron(A_BLINK | A_UNDERLINE);
 
@@ -57,7 +62,8 @@ int main(void) {
   int ch = 0;
 
   int x, y = 0;
-  while (ch != 'q') {
+  while (ch != 'q' && QUIT != 1) {
+    refresh();
     mvprintw(row-1, 0, stringify_mode());
     move(y, x);
 
@@ -66,6 +72,13 @@ int main(void) {
         ch = getch();
         if(ch == 'i'){
           mode = INSERT;
+        } else if(ch == ctrl('s')) {
+
+          FILE *file = fopen("out.txt", "w");
+          
+          fwrite(buf, buf_s, 1, file);
+          fclose(file);
+          QUIT = 1;
         }
         break;
       case INSERT: {
@@ -76,9 +89,11 @@ int main(void) {
           getyx(stdscr, y, x);
           move(y, x-1);
           delch();
+          buf[buf_s--] = ' ';
         } else if (ch == ESCAPE) {
           mode = NORMAL;
         } else {
+          buf[buf_s++] = ch;
           addch(ch);
         }
         break;

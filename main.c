@@ -2,10 +2,16 @@
 #include <curses.h>
 
 int main(void) {
-  initscr();
-  printw("hello world\n");
-  refresh();
+  initscr(); // inits screen
+  raw();
+  keypad(stdscr, TRUE);
+  noecho();
+
+  int ch = getch();
+
+  refresh(); 
   getch();
-  endwin();
+  endwin(); // frees the memory taken by curses
   return 0;
+
 }

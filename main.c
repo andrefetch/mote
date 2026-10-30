@@ -5,6 +5,7 @@
 #include <curses.h>
 
 #define ctrl(x) ((x) & 0x1f)
+#define BACKSPACE 263
 
 typedef enum {
   NORMAL,
@@ -54,19 +55,27 @@ int main(void) {
   int ch = getch();
   addch(ch);
 
+  int x, y = 0;
+  getyx(stdscr, y, x);
   while (ch != 'r') {
-   
+    mvprintw(row-1, 0, stringify_mode());
+    move(y, x);
     ch = getch();
 
-    if (ch == 263) {
-      int x, y;
+    switch(mode) {
+      case NORMAL: 
+        break;
+      case INSERT:
+         if (ch == BACKSPACE) {
+          getyx(stdscr, y, x);
+          move(y, x-1);
+          delch();
+        } else {
+          addch(ch);
+        }
+      }
       getyx(stdscr, y, x);
-      move(y, x-1);
-      delch();
-    } else {
-      addch(ch);
     }
-  }
 
   refresh(); 
   getch();

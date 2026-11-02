@@ -120,7 +120,7 @@ int main(void) {
           break;
         } else if (ch == BACKSPACE) {
           getyx(stdscr, y, x);
-          move(y, x-1);
+          move(y, buffer.cur_pos + 1);
           //delch();
           Row *cur = &buffer.rows[buffer.row_index];
           cur->contents[buffer.cur_pos] = ' '; 

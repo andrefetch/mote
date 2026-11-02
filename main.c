@@ -7,6 +7,7 @@
 #define ctrl(x) ((x) & 0x1f)
 #define BACKSPACE 263
 #define ESCAPE 27
+#define ENTER 10
 
 typedef enum {
   NORMAL,
@@ -85,16 +86,16 @@ int main(void) {
           mode = INSERT;
         } else if (ch == 'h') {
           move(y, x-1);
-          buffer.x -= 1;
+          buffer.cur_pos -= 1;
         } else if (ch == 'l') {
           move(y, x+1);
-          buffer.x += 1;
+          buffer.cur_pos += 1;
         } else if (ch == 'j') {
           move(y-1, x);
-          buffer.y -= 1;
+          buffer.row_index -= 1;
         } else if (ch == 'k') {
           move(y+1, x);
-          buffer.y += 1;
+          buffer.row_index += 1;
         } else if(ch == ctrl('s')) {
           FILE *file = fopen("out.txt", "w");
 
@@ -111,15 +112,18 @@ int main(void) {
         } else if (ch == BACKSPACE) {
           getyx(stdscr, y, x);
           move(y, x-1);
-          delch();
-          buffer.buf[buffer.x * x+buffer.y] = ' ';
-          buffer.x -= 1;
+          // delch();
+          buffer.buf[buffer.cur_pos * cur.size+buffer.row_index] = ' ';
+          buffer.cur_pos -= 1;
         } else if (ch == ESCAPE) {
           mode = NORMAL;
+        } else if (ch == ENTER) {
+          buffer.row_index += 1;
         } else {
-          buffer.buf[buffer.x * x+buffer.y] = ch;
-          addch(ch);
-          buffer.x += 1;
+          Row cur = buffer.rows[buffer.row_index]
+          buffer.buf[buffer.cur_pos * cur.size+buffer.row_index] = ch;
+          // addch(ch);
+          buffer.cur_pos += 1;
         }
         break;
     }

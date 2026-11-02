@@ -31,16 +31,16 @@ int QUIT = 0;
 char *stringify_mode() {
   switch(mode) {
     case NORMAL:
-      return "NORMAL";
+      return "-- NORMAL --";
       break;
     case INSERT:
-      return "INSERT";
+      return "-- INSERT --";
       break;
     default:
-      return "NORMAL";
+      return "-- NORMAL --";
       break;
   }
-  return "NORMAL";
+  return "-- NORMAL --";
 }
 
 int main(void) {

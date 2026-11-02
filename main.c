@@ -64,9 +64,12 @@ int main(void) {
 
   Buffer buffer = {0};
   buffer.row_s = 1;
+  buffer.cur_pos = 1;
 
   for(size_t i = 0; i < 1024; i++) {
-    buffer.rows[i].contents = calloc(1024, sizeof(char)); // magic numbers mothafluffa
+    buffer.rows[i].contents = calloc(1024, sizeof(char));
+    buffer.rows[i].contents[0] = ' ';
+    // magic numbers mothafluffa
   }
                                           
   // attron(A_BLINK | A_UNDERLINE); (i was messing with effects)
@@ -109,7 +112,7 @@ int main(void) {
         } else if(ch == ctrl('s')) {
           FILE *file = fopen("out.txt", "w");
 
-          fwrite(buffer.buf, buffer.row_index*buffer.cur_pos, 1, file);
+          // fwrite(buffer.buf, buffer.row_index*buffer.cur_pos, 1, file);
           fclose(file);
           QUIT = 1;
         }
@@ -120,11 +123,12 @@ int main(void) {
           break;
         } else if (ch == BACKSPACE) {
           getyx(stdscr, y, x);
-          move(y, buffer.cur_pos + 1);
-          //delch();
           Row *cur = &buffer.rows[buffer.row_index];
-          cur->contents[buffer.cur_pos] = ' '; 
-          buffer.cur_pos -= 1;
+          if (buffer.cur_pos > 0) {
+            buffer.cur_pos--;
+            cur->contents[buffer.cur_pos] = ' ';
+            move(y, buffer.cur_pos + 1);
+          }
         } else if (ch == ESCAPE) {
           mode = NORMAL;
         } else if (ch == ENTER) {
@@ -133,7 +137,6 @@ int main(void) {
         } else {
           Row *cur = &buffer.rows[buffer.row_index];
           cur->contents[buffer.cur_pos] = ch;
-          //addch(ch);
           buffer.cur_pos += 1;
           move(y, buffer.cur_pos + 1);
         }

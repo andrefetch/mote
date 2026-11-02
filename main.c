@@ -24,6 +24,7 @@ typedef struct {
   char *buf;
   Row rows[1024];
   size_t row_index;
+  size_t cur_pos;
 } Buffer;
 
 Mode mode = NORMAL;
@@ -99,7 +100,7 @@ int main(void) {
         } else if(ch == ctrl('s')) {
           FILE *file = fopen("out.txt", "w");
 
-          fwrite(buffer.buf, buffer.x*buffer.y, 1, file);
+          fwrite(buffer.buf, buffer.row_index*buffer.cur_pos, 1, file);
           fclose(file);
           QUIT = 1;
         }
@@ -113,6 +114,7 @@ int main(void) {
           getyx(stdscr, y, x);
           move(y, x-1);
           // delch();
+          Row cur = buffer.rows[buffer.row_index];
           buffer.buf[buffer.cur_pos * cur.size+buffer.row_index] = ' ';
           buffer.cur_pos -= 1;
         } else if (ch == ESCAPE) {
@@ -120,7 +122,7 @@ int main(void) {
         } else if (ch == ENTER) {
           buffer.row_index += 1;
         } else {
-          Row cur = buffer.rows[buffer.row_index]
+          Row cur = buffer.rows[buffer.row_index];
           buffer.buf[buffer.cur_pos * cur.size+buffer.row_index] = ch;
           // addch(ch);
           buffer.cur_pos += 1;

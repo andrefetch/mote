@@ -97,18 +97,18 @@ int main(void) {
       case NORMAL: {
         if(ch == 'i') {
           mode = INSERT;
-        } else if (ch == 'h') {
+        } else if (ch == 'h' || ch == KEY_LEFT) {
           move(y, x-1);
           buffer.cur_pos -= 1;
-        } else if (ch == 'l') {
+        } else if (ch == 'l' || ch == KEY_RIGHT) {
           move(y, x+1);
           buffer.cur_pos += 1;
-        } else if (ch == 'j') {
-          move(y-1, x);
-          buffer.row_index -= 1;
-        } else if (ch == 'k') {
+        } else if (ch == 'j' || ch == KEY_DOWN) {
           move(y+1, x);
           buffer.row_index += 1;
+        } else if (ch == 'k' || ch == KEY_UP) {
+          move(y-1, x);
+          buffer.row_index -= 1;
         } else if(ch == ctrl('s')) {
           FILE *file = fopen("out.txt", "w");
 

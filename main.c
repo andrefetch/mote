@@ -25,6 +25,7 @@ typedef struct {
   Row rows[1024];
   size_t row_index;
   size_t cur_pos;
+  size_t row_s; 
 } Buffer;
 
 Mode mode = NORMAL;
@@ -62,11 +63,15 @@ int main(void) {
   }
 
   Buffer buffer = {0};
-  buffer.buf = calloc(1024, sizeof(char)); // magic numbers mothafluffa
+  buffer.row_s = 1;
+
+  for(size_t i = 0; i < 1024; i++) {
+    buffer.rows[i].contents = calloc(1024, sizeof(char)); // magic numbers mothafluffa
+  }
                                           
   // attron(A_BLINK | A_UNDERLINE); (i was messing with effects)
 
-  int row, col = 0;
+  int row, col;
   getmaxyx(stdscr, row, col);
   
   mvprintw(row-1, 0, stringify_mode());
@@ -78,11 +83,15 @@ int main(void) {
   while (ch != 'q' && QUIT != 1) {
     refresh();
     mvprintw(row-1, 0, stringify_mode());
-    move(y, x);
+   
+    for(size_t i = 0; i < buffer.row_s; i++) {
+      mvprintw(0, i+1, buffer.rows[i].contents);
+    }
 
+    move(y, x);
+    ch = getch();
     switch(mode) {
       case NORMAL: {
-        ch = getch();
         if(ch == 'i') {
           mode = INSERT;
         } else if (ch == 'h') {
@@ -107,25 +116,26 @@ int main(void) {
         break;
       }
       case INSERT: {
-        ch = getch();
         if (ch == ERR) {
           break;
         } else if (ch == BACKSPACE) {
           getyx(stdscr, y, x);
           move(y, x-1);
-          // delch();
-          Row cur = buffer.rows[buffer.row_index];
-          buffer.buf[buffer.cur_pos * cur.size+buffer.row_index] = ' ';
+          //delch();
+          Row *cur = &buffer.rows[buffer.row_index];
+          cur->contents[buffer.cur_pos] = ' '; 
           buffer.cur_pos -= 1;
         } else if (ch == ESCAPE) {
           mode = NORMAL;
         } else if (ch == ENTER) {
           buffer.row_index += 1;
+          buffer.row_s++;
         } else {
-          Row cur = buffer.rows[buffer.row_index];
-          buffer.buf[buffer.cur_pos * cur.size+buffer.row_index] = ch;
-          // addch(ch);
+          Row *cur = &buffer.rows[buffer.row_index];
+          cur->contents[buffer.cur_pos] = ch;
+          //addch(ch);
           buffer.cur_pos += 1;
+          move(y, buffer.cur_pos + 1);
         }
         break;
     }

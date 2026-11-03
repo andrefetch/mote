@@ -88,7 +88,7 @@ int main(void) {
     mvprintw(row-1, 0, stringify_mode());
    
     for(size_t i = 0; i < buffer.row_s; i++) {
-      mvprintw(0, i+1, buffer.rows[i].contents);
+      mvprintw(i, 0, buffer.rows[i].contents);
     }
 
     move(y, x);
@@ -119,26 +119,34 @@ int main(void) {
         break;
       }
       case INSERT: {
+        keypad(stdscr, FALSE);
         if (ch == ERR) {
           break;
         } else if (ch == BACKSPACE) {
           getyx(stdscr, y, x);
-          Row *cur = &buffer.rows[buffer.row_index];
-          if (buffer.cur_pos > 0) {
-            buffer.cur_pos--;
-            cur->contents[buffer.cur_pos] = ' ';
-            move(y, buffer.cur_pos + 1);
+          if(buffer.cur_pos == 0){
+              Row *cur = &buffer.rows[buffer.row_index];
+              move(buffer.row_index, cur->size);
+          } else {
+            Row *cur = &buffer.rows[buffer.row_index];
+            cur->contents[--buffer.cur_pos] = ' ';
+            cur->size = buffer.cur_pos;
+            move(y, buffer.cur_pos);
           }
         } else if (ch == ESCAPE) {
           mode = NORMAL;
+          keypad(stdscr, TRUE);
         } else if (ch == ENTER) {
-          buffer.row_index += 1;
+          buffer.row_index++; 
           buffer.row_s++;
+          buffer.cur_pos = 0;
+          move(buffer.row_index, buffer.cur_pos);
         } else {
           Row *cur = &buffer.rows[buffer.row_index];
           cur->contents[buffer.cur_pos] = ch;
+          cur->size = buffer.cur_pos + 1;
           buffer.cur_pos += 1;
-          move(y, buffer.cur_pos + 1);
+          move(y, buffer.cur_pos);
         }
         break;
     }
